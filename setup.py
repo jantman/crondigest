@@ -71,5 +71,9 @@ setup(
     description='A cron job wrapper to send batched digest email and notify of missed jobs.',
     long_description=long_description,
     keywords="cron digest email monitoring",
-    classifiers=classifiers
+    classifiers=classifiers,
+    entry_points="""
+    [console_scripts]
+    crondigest = crondigest.runner:main
+    """
 )

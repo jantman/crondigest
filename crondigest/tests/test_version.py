@@ -38,7 +38,6 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 import crondigest.version as version
 
 import re
-import sys
 
 
 class TestVersion(object):

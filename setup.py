@@ -41,10 +41,6 @@ from crondigest.version import VERSION, PROJECT_URL
 with open('README.rst') as file:
     long_description = file.read()
 
-requires = [
-    'something'
-]
-
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Environment :: Console',
@@ -74,7 +70,6 @@ setup(
     url=PROJECT_URL,
     description='A cron job wrapper to send batched digest email and notify of missed jobs.',
     long_description=long_description,
-    install_requires=requires,
     keywords="cron digest email monitoring",
     classifiers=classifiers
 )

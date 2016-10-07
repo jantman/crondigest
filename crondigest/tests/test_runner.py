@@ -90,12 +90,47 @@ class TestMain(object):
 
 class TestParseArgs(object):
 
+    def test_parser(self):
+        parsed = Mock(example_config=False, COMMAND=['foo'])
+        with patch('%s.argparse.ArgumentParser' % pbm, autospec=True) as mock_p:
+            mock_p.return_value.parse_args.return_value = parsed
+            res = parse_args(['foo'])
+        assert res == parsed
+        assert mock_p.mock_calls == [
+            call(description='crondigest - A cron job wrapper to send '
+                             'batched digest email and notify of missed '
+                             'jobs - <%s>' % PROJECT_URL),
+            call().add_argument('-c', '--config', action='store',
+                                default='/etc/crondigest_conf.py',
+                                dest='config',
+                                help='path to config file (default: '
+                                     '/etc/crondigest_conf.py)',
+                                type=str),
+            call().add_argument('-v', '--verbose', action='count', default=0,
+                                dest='verbose',
+                                help='verbose output. specify twice for '
+                                     'debug-level output.'),
+            call().add_argument('-V', '--version', action='version',
+                                version='crondigest v%s <%s>' % (
+                                    VERSION, PROJECT_URL)),
+            call().add_argument('--example-config', action='store_true',
+                                default=False, dest='example_config',
+                                help='print example config file content '
+                                     'and exit'),
+            call().add_argument('COMMAND', action='store',
+                                help='cron command to run; must be '
+                                     'shell-escaped and shouldbe quoted to '
+                                     'act as one argument to crondigest',
+                                nargs='*', type=str),
+            call().parse_args(['foo']),
+        ]
+
     def test_no_command(self, capsys):
         with pytest.raises(SystemExit) as excinfo:
             parse_args([])
         assert excinfo.value.code == 2
         out, err = capsys.readouterr()
-        assert 'too few arguments' in err
+        assert err == "ERROR: You must specify exactly one COMMAND argument.\n"
         assert out == ''
 
     def test_only_command(self):
@@ -103,28 +138,28 @@ class TestParseArgs(object):
         assert res.config == '/etc/crondigest_conf.py'
         assert res.verbose == 0
         assert res.example_config is False
-        assert res.COMMAND == 'foo bar "baz" blam && blarg'
+        assert res.COMMAND == ['foo bar "baz" blam && blarg']
 
     def test_config(self):
         res = parse_args(['--config=/foo/bar', 'foo'])
         assert res.config == '/foo/bar'
         assert res.verbose == 0
         assert res.example_config is False
-        assert res.COMMAND == 'foo'
+        assert res.COMMAND == ['foo']
 
     def test_verbose(self):
         res = parse_args(['-v', 'foo'])
         assert res.config == '/etc/crondigest_conf.py'
         assert res.verbose == 1
         assert res.example_config is False
-        assert res.COMMAND == 'foo'
+        assert res.COMMAND == ['foo']
 
     def test_verbose2(self):
         res = parse_args(['-vv', 'foo'])
         assert res.config == '/etc/crondigest_conf.py'
         assert res.verbose == 2
         assert res.example_config is False
-        assert res.COMMAND == 'foo'
+        assert res.COMMAND == ['foo']
 
     def test_version(self, capsys):
         with pytest.raises(SystemExit) as excinfo:
@@ -143,11 +178,11 @@ class TestParseArgs(object):
             assert err == ''
 
     def test_example_config(self):
-        res = parse_args(['--example-config', 'foo'])
+        res = parse_args(['--example-config'])
         assert res.config == '/etc/crondigest_conf.py'
         assert res.verbose == 0
         assert res.example_config is True
-        assert res.COMMAND == 'foo'
+        assert res.COMMAND == []
 
 
 class TestSetLog(object):

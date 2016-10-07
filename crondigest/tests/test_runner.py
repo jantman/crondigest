@@ -63,7 +63,7 @@ class TestMain(object):
 
     def test_run(self, capsys):
         mock_args = Mock(verbose=0, config='cpath', example_config=False,
-                         COMMAND='foo')
+                         COMMAND='foo', print_config=False)
         with patch('%s.logger' % pbm, autospec=True) as mocklogger:
             with patch.multiple(
                 pbm,
@@ -89,7 +89,7 @@ class TestMain(object):
         expected = expected.replace('%PROJECT_URL%', PROJECT_URL)
         args = ['crondigest', '--example-config']
         mock_args = Mock(verbose=0, config='cpath', example_config=True,
-                         COMMAND='foo')
+                         print_config=False)
         with patch('%s.logger' % pbm, autospec=True) as mocklogger:
             with patch.multiple(
                 pbm,
@@ -110,6 +110,33 @@ class TestMain(object):
         out, err = capsys.readouterr()
         assert out == expected
         assert err == ''
+
+    def test_config_print(self):
+        args = ['crondigest', '--print-config']
+        mock_args = Mock(verbose=0, config='cpath', example_config=False,
+                         print_config=True)
+        with patch('%s.logger' % pbm, autospec=True) as mocklogger:
+            with patch.multiple(
+                pbm,
+                autospec=True,
+                set_log_info=DEFAULT,
+                set_log_debug=DEFAULT,
+                parse_args=DEFAULT,
+                Config=DEFAULT,
+            ) as mocks:
+                mocks['parse_args'].return_value = mock_args
+                with patch.object(sys, 'argv', args):
+                    main()
+        assert mocks['set_log_info'].mock_calls == []
+        assert mocks['set_log_debug'].mock_calls == []
+        assert mocks['parse_args'].mock_calls == [
+            call(['--print-config'])
+        ]
+        assert mocks['Config'].mock_calls == [
+            call('cpath'),
+            call().print_config()
+        ]
+        assert mocklogger.mock_calls == []
 
 
 class TestParseArgs(object):
@@ -141,6 +168,9 @@ class TestParseArgs(object):
                                 default=False, dest='example_config',
                                 help='print example config file content '
                                      'and exit'),
+            call().add_argument('--print-config', dest='print_config',
+                                action='store_true', default=False,
+                                help='print effective configuration and exit'),
             call().add_argument('COMMAND', action='store',
                                 help='cron command to run; must be '
                                      'shell-escaped and shouldbe quoted to '
@@ -206,6 +236,14 @@ class TestParseArgs(object):
         assert res.config == '/etc/crondigest_conf.py'
         assert res.verbose == 0
         assert res.example_config is True
+        assert res.COMMAND == []
+
+    def test_config_print(self):
+        res = parse_args(['--print-config'])
+        assert res.config == '/etc/crondigest_conf.py'
+        assert res.verbose == 0
+        assert res.example_config is False
+        assert res.print_config is True
         assert res.COMMAND == []
 
 

@@ -37,6 +37,7 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 
 import logging
 import os
+import re
 from datetime import timedelta
 
 have_SourceFileLoader = False
@@ -46,7 +47,7 @@ try:  # nocoverage
     have_SourceFileLoader = True
 except ImportError:
     import imp
-    have_SourceFileLoader = True
+    have_SourceFileLoader = False
 
 logger = logging.getLogger(__name__)
 
@@ -63,17 +64,47 @@ class Config(object):
         """
         self.config_path = os.path.abspath(os.path.expanduser(config_path))
         logger.debug('Configuration module path: %s', self.config_path)
-        self._load_conf()
+        self._config = self._load_conf()
+
+    def get(self, var_name):
+        """
+        Return the value of configuration variable ``var_name``.
+
+        :param var_name: configuration variable name
+        :type var_name: str
+        :return: value of configuration variable
+        """
+        return self._config[var_name]
+
+    def print_config(self):
+        """
+        Print the effective configuration settings to STDOUT.
+        """
+        print("# crondigest effective configuration:")
+        for k in sorted(self._config.keys()):
+            v = self._config[k]
+            print("%s = %s" % (k, repr(v)))
 
     def _load_conf(self):
         """
         Load configuration from ``self.config_path``; set instance variables.
+        Return a config dict containing all config variables.
+
+        :returns: config dict containing all config variables
+        :rtype: dict
         """
         if have_SourceFileLoader:
             conf_mod = self._load_with_SourceFileLoader()
         else:
             conf_mod = self._load_with_imp()
         # make dict and return
+        conf = {}
+        var_re = re.compile(r'^[A-Z][A-Za-z_]+')
+        for varname in dir(conf_mod):
+            if not var_re.match(varname):
+                continue
+            conf[varname] = getattr(conf_mod, varname)
+        return conf
 
     def _load_with_SourceFileLoader(self):
         """

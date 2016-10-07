@@ -36,7 +36,9 @@ Jason Antman <jason@jasonantman.com> <http://www.jasonantman.com>
 """
 
 import sys
+import pytest
 from crondigest.config import Config
+from datetime import timedelta
 
 # https://code.google.com/p/mock/issues/detail?id=249
 # py>=3.4 should use unittest.mock not the mock package on pypi
@@ -56,27 +58,99 @@ class TestConfigInit(object):
 
     def test_init(self):
         with patch('%s._load_conf' % pb, autospec=True) as mock_load:
+            mock_load.return_value = {'foo': 'bar'}
             c = Config('/foo/bar.py')
         assert c.config_path == '/foo/bar.py'
         assert mock_load.mock_calls == [call(c)]
+        assert c._config == {'foo': 'bar'}
+
 
 class TestConfig(object):
 
     def setup(self):
-        with patch('%s._load_conf' % pb, autospec=True) as mock_load:
+        with patch('%s._load_conf' % pb, autospec=True):
             self.cls = Config('/conf/path.py')
 
     def test_load_conf_SourceFileLoader(self):
-        mock_sfl = Mock()
-        mock_imp = Mock()
+        mock_sfl = Mock(FOO='bar', BA_Z='blam', _foo='bad')
+        mock_imp = Mock(OOF='rab', Z_AB='malb', _bar='bad')
         with patch('%s._load_with_SourceFileLoader' % pb,
                    autospec=True) as mock_load_sfl:
             with patch('%s._load_with_imp' % pb,
                        autospec=True) as mock_load_imp:
-                self.cls.have_SourceFileLoader = True
                 mock_load_sfl.return_value = mock_sfl
                 mock_load_imp.return_value = mock_imp
-                res = self.cls._load_conf()
-        assert res == mock_sfl
+                with patch('%s.have_SourceFileLoader' % pbm, True):
+                    res = self.cls._load_conf()
+        assert res == {'FOO': 'bar', 'BA_Z': 'blam'}
         assert mock_load_imp.mock_calls == []
         assert mock_load_sfl.mock_calls == [call(self.cls)]
+
+    def test_load_conf_imp(self):
+        mock_sfl = Mock(FOO='bar', BA_Z='blam', _foo='bad')
+        mock_imp = Mock(OOF='rab', Z_AB='malb', _bar='bad')
+        with patch('%s._load_with_SourceFileLoader' % pb,
+                   autospec=True) as mock_load_sfl:
+            with patch('%s._load_with_imp' % pb,
+                       autospec=True) as mock_load_imp:
+                mock_load_sfl.return_value = mock_sfl
+                mock_load_imp.return_value = mock_imp
+                with patch('%s.have_SourceFileLoader' % pbm, False):
+                    res = self.cls._load_conf()
+        assert res == {'OOF': 'rab', 'Z_AB': 'malb'}
+        assert mock_load_imp.mock_calls == [call(self.cls)]
+        assert mock_load_sfl.mock_calls == []
+
+    @pytest.mark.skipif(sys.version_info < (3, 3), reason='test for py3.3+')
+    def test_load_with_SourceFileLoader(self):
+        mod = Mock()
+        with patch('%s.logger' % pbm, autospec=True) as mock_logger:
+            with patch('%s.SourceFileLoader' % pbm, autospec=True) as mock_sfl:
+                mock_sfl.return_value.load_module.return_value = mod
+                res = self.cls._load_with_SourceFileLoader()
+        assert res == mod
+        assert mock_sfl.mock_calls == [
+            call('crondigest_conf', '/conf/path.py'),
+            call().load_module()
+        ]
+        assert mock_logger.mock_calls == [
+            call.debug(
+                'Loading config using importlib.machinery.SourceFileLoader()'
+            )
+        ]
+
+    @pytest.mark.skipif(sys.version_info >= (3, 3), reason='test for py < 3.3')
+    def test_load_with_imp(self):
+        mod = Mock()
+        with patch('%s.logger' % pbm, autospec=True) as mock_logger:
+            with patch('%s.imp.load_source' % pbm, autospec=True) as mock_load:
+                mock_load.return_value = mod
+                res = self.cls._load_with_imp()
+        assert res == mod
+        assert mock_load.mock_calls == [
+            call('crondigest_conf', '/conf/path.py')
+        ]
+        assert mock_logger.mock_calls == [
+            call.debug('Loading config using imp.load_source()')
+        ]
+
+    def test_get(self):
+        self.cls._config = {'bar': 123}
+        assert self.cls.get('bar') == 123
+
+    def test_print_config(self, capsys):
+        self.cls._config = {
+            'FOO': 'bar',
+            'BAR': 123,
+            'BAZ': True,
+            'BL_AM': timedelta(days=7)
+        }
+        expected = "# crondigest effective configuration:\n"
+        expected += "BAR = 123\n"
+        expected += "BAZ = True\n"
+        expected += "BL_AM = datetime.timedelta(7)\n"
+        expected += "FOO = 'bar'\n"
+        self.cls.print_config()
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == expected

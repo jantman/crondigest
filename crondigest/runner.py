@@ -76,13 +76,19 @@ def parse_args(argv):
     p.add_argument('--example-config', dest='example_config',
                    action='store_true', default=False,
                    help='print example config file content and exit')
+    p.add_argument('--print-config', dest='print_config', action='store_true',
+                   default=False,
+                   help='print effective configuration and exit')
     p.add_argument('COMMAND', type=str, action='store',
                    help='cron command to run; must be shell-escaped and should'
                         'be quoted to act as one argument to crondigest',
                    # nargs='*' is required for --example-config to work
                    nargs='*')
     args = p.parse_args(argv)
-    if not args.example_config and len(args.COMMAND) != 1:
+    if (
+        (not args.example_config and not args.print_config) and
+        len(args.COMMAND) != 1
+    ):
         sys.stderr.write("ERROR: You must specify exactly one "
                          "COMMAND argument.\n")
         raise SystemExit(2)
@@ -141,6 +147,9 @@ def main(args=None):
         set_log_info()
 
     conf = Config(args.config)
+    if args.print_config:
+        conf.print_config()
+        return
 
 
 if __name__ == "__main__":

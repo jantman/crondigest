@@ -56,7 +56,7 @@ act as though every user running it is the same.
 Requirements
 ------------
 
-* Python 2.7+ (currently tested with 2.7, 3.2, 3.3, 3.4)
+* Python 2.7 or 3.3+ (currently tested with 2.7, 3.3, 3.4 and 3.5)
 * Python `VirtualEnv <http://www.virtualenv.org/>`_ and ``pip`` (recommended installation method; your OS/distribution should have packages for these)
 
 Installation

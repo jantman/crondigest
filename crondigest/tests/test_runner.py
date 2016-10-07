@@ -61,11 +61,33 @@ pbm = 'crondigest.runner'
 
 class TestMain(object):
 
+    def test_run(self, capsys):
+        mock_args = Mock(verbose=0, config='cpath', example_config=False,
+                         COMMAND='foo')
+        with patch('%s.logger' % pbm, autospec=True) as mocklogger:
+            with patch.multiple(
+                pbm,
+                autospec=True,
+                set_log_info=DEFAULT,
+                set_log_debug=DEFAULT,
+                parse_args=DEFAULT,
+                Config=DEFAULT,
+            ) as mocks:
+                main(args=mock_args)
+        assert mocks['set_log_info'].mock_calls == []
+        assert mocks['set_log_debug'].mock_calls == []
+        assert mocks['parse_args'].mock_calls == []
+        assert mocks['Config'].mock_calls == [call('cpath')]
+        assert mocklogger.mock_calls == []
+        out, err = capsys.readouterr()
+        assert out == ''
+        assert err == ''
+
     def test_example_config(self, capsys):
         expected = getsource(example_config_module)
         expected = expected.replace('%VERSION%', VERSION)
         expected = expected.replace('%PROJECT_URL%', PROJECT_URL)
-        args = ['crondigest', '--example-config', 'foo']
+        args = ['crondigest', '--example-config']
         mock_args = Mock(verbose=0, config='cpath', example_config=True,
                          COMMAND='foo')
         with patch('%s.logger' % pbm, autospec=True) as mocklogger:
@@ -75,6 +97,7 @@ class TestMain(object):
                 set_log_info=DEFAULT,
                 set_log_debug=DEFAULT,
                 parse_args=DEFAULT,
+                Config=DEFAULT,
             ) as mocks:
                 mocks['parse_args'].return_value = mock_args
                 with patch.object(sys, 'argv', args):
@@ -82,6 +105,7 @@ class TestMain(object):
         assert mocks['set_log_info'].mock_calls == []
         assert mocks['set_log_debug'].mock_calls == []
         assert mocks['parse_args'].mock_calls == [call(args[1:])]
+        assert mocks['Config'].mock_calls == []
         assert mocklogger.mock_calls == []
         out, err = capsys.readouterr()
         assert out == expected

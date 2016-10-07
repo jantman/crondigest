@@ -42,6 +42,7 @@ from inspect import getsource
 
 from crondigest.version import VERSION, PROJECT_URL
 import crondigest.example_config as example_config_module
+from crondigest.config import Config
 
 FORMAT = "[%(asctime)s %(levelname)s] %(message)s"
 logging.basicConfig(level=logging.WARNING, format=FORMAT)
@@ -139,7 +140,8 @@ def main(args=None):
     elif args.verbose == 1:
         set_log_info()
 
-    # @TODO need to test that args.COMMAND is present, since nargs='*'
+    conf = Config(args.config)
+
 
 if __name__ == "__main__":
     args = parse_args(sys.argv[1:])

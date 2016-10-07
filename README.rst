@@ -48,6 +48,11 @@ I run a bunch of cron job on my desktop computer; things like backups of cloud s
 
 The end result is (or should be) a daily email report of all cron jobs that ran (along with their status, runtime and output/error) as well as a listing of any jobs that should have run but didn't.
 
+**Note** that in its current form, crondigest is designed for single (human)
+user systems; the information on every command run and every user's crontab
+will be stored in a single world-writable directory, and crondigest will effectively
+act as though every user running it is the same.
+
 Requirements
 ------------
 
@@ -68,12 +73,29 @@ for information on how to create a venv.
 Configuration
 -------------
 
-Something here.
+Run ``crondigest --example-config`` to print an example config file to STDOUT;
+edit this text as needed (see the comments inline for instructions) and save
+as ``/etc/crondigest_conf.py``. The configuration file is imported as a Python
+module, so you can use any Python code you need as long as you end up with the
+variables documented.
 
 Usage
 -----
 
-Something else here.
+Quote your existing cron commands, and send them as the first argument to
+``crondigest``.
+
+i.e., an original crontab entry of:
+
+.. code-block::
+
+    0 2 * * * FOO=bar /home/username/bin/run_something.py -s nightly
+
+becomes:
+
+.. code-block::
+
+    0 2 * * * crondigest 'FOO=bar /home/username/bin/run_something.py -s nightly'
 
 Bugs and Feature Requests
 -------------------------

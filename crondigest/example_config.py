@@ -7,16 +7,12 @@ is /etc/crondigest_conf.py but that can be overridden with the
 -c / --config option to crondigest.
 """
 
+from datetime import timedelta
+
 # STATE_PATH is the directory where crondigest will store its state (i.e.
 # output of runs, status, crontab copies, etc.). When SINGLE_USER is true,
 # it must be world-writable.
 STATE_PATH = '/var/cache/crondigest'
-
-# When SINGLE_USER is set to True, all log files will be world-readable and
-# crondigest will assume that all commands it runs on the system should have
-# output and results sent to the same user (i.e. a system with a single human
-# user).
-SINGLE_USER = True
 
 # MAILTO is a string or list of strings specifying email report recipients,
 # like:
@@ -24,3 +20,10 @@ SINGLE_USER = True
 # or
 # MAILTO = 'me@example.com'
 MAILTO = 'root'
+
+# This defines how often mail should be sent (i.e. if mail has not been sent
+# in this amount of time, send it now). This is a ``datetime.timedelta``.
+MAIL_INTERVAL = timedelta(days=1)
+
+# This defines how long to keep logs/output/results from commands run.
+LOG_RETENTION = timedelta(days=7)

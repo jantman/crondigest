@@ -1,43 +1,16 @@
 crondigest
 ==========
 
-.. image:: https://img.shields.io/pypi/v/crondigest.svg?maxAge=2592000
-   :target: https://pypi.python.org/pypi/crondigest
-   :alt: pypi version
-
-.. image:: http://jantman-personal-public.s3-website-us-east-1.amazonaws.com/pypi-stats/crondigest/per-month.svg
-   :target: http://jantman-personal-public.s3-website-us-east-1.amazonaws.com/pypi-stats/crondigest/index.html
-   :alt: PyPi downloads
-
-.. image:: https://img.shields.io/github/forks/jantman/crondigest.svg
-   :alt: GitHub Forks
-   :target: https://github.com/jantman/crondigest/network
-
-.. image:: https://img.shields.io/github/issues/jantman/crondigest.svg
-   :alt: GitHub Open Issues
-   :target: https://github.com/jantman/crondigest/issues
-
-.. image:: https://landscape.io/github/jantman/crondigest/master/landscape.svg
-   :target: https://landscape.io/github/jantman/crondigest/master
-   :alt: Code Health
-
-.. image:: https://secure.travis-ci.org/jantman/crondigest.png?branch=master
-   :target: http://travis-ci.org/jantman/crondigest
-   :alt: travis-ci for master branch
-
-.. image:: https://codecov.io/github/jantman/crondigest/coverage.svg?branch=master
-   :target: https://codecov.io/github/jantman/crondigest?branch=master
-   :alt: coverage report for master branch
-
-.. image:: https://readthedocs.org/projects/crondigest/badge/?version=latest
-   :target: https://readthedocs.org/projects/crondigest/?badge=latest
-   :alt: sphinx documentation for latest release
-
-.. image:: http://www.repostatus.org/badges/latest/wip.svg
-   :alt: Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.
-   :target: http://www.repostatus.org/#wip
+.. image:: http://www.repostatus.org/badges/latest/abandoned.svg
+   :alt: Project Status: Abandoned – Initial development has started, but there has not yet been a stable, usable release; the project has been abandoned and the author(s) do not intend on continuing development.
+   :target: http://www.repostatus.org/#abandoned
 
 A cron job wrapper to send batched digest email and notify of missed jobs.
+
+Deprecated and Abandoned
+========================
+
+See `ecsjobs <https://github.com/jantman/ecsjobs>`_ for my supported replacement.
 
 Overview
 --------
